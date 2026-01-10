@@ -1,4 +1,4 @@
-## V2 version: To read from different mail sender
+## V2 version: To read from different mail sender: -- MD
 import imaplib
 import os
 import logging
