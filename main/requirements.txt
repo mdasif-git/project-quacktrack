@@ -1,3 +1,5 @@
 imaplib2==3.6
 getpass4==0.0.14.1
 email==6.0.0a1
+pandas==2.3.3
+beautifulsoup4 == 4.14.3
