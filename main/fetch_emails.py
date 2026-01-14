@@ -7,7 +7,7 @@ import re
 import pandas as pd
 import time
 from email.header import decode_header, make_header
-
+from bs4 import BeautifulSoup
 
 
 #Establish a connection to the Gmail IMAP server
@@ -46,12 +46,33 @@ def get_emails():
                                                 for part in msg.walk():
                                                         content_type = part.get_content_type()
                                                         content_disposition = str(part.get("Content-Disposition"))
-                                                        if(content_type =="text/plain"):
+                                                        
+                                                        
+                                                        # if(content_type =="text/plain"):
+                                                        #         body = part.get_payload(decode=True) 
+                                                        #         body = body.decode('utf-8',errors='ignore').strip()
+                                                        #         body_trimmed = re.sub(r'\s+',' ',body)
+                                                        
+                                                        #         tmp_dict['email_body'] = body_trimmed
+
+                                                        if(content_type =="text/html"):
+                                                                # print(body_trimmed)
                                                                 body = part.get_payload(decode=True) 
                                                                 body = body.decode('utf-8',errors='ignore').strip()
-                                                                body_trimmed = re.sub(r'\s+',' ',body)
+                                                                
+                                                                soup = BeautifulSoup(body, 'html.parser')
+                                                                body_text = soup.body.get_text()
+                                                                body_trimmed = re.sub(r'\s+',' ',body_text)
                                                                 tmp_dict['email_body'] = body_trimmed
-                                                                #F Fetches headers only: Subject, From, Date
+                                                                
+                                                                # Extract the main text content (assuming it's in the specific <td> class)
+                                                                # main_text = ""
+                                                                # main_td = soup.find('td', class_='esd-text')
+                                                                # if main_td:
+                                                                #         main_text = main_td.get_text(separator=' ', strip=True)
+                                                                #         print(main_text)
+                                                                # tmp_dict['email_body'] = main_text
+                                #F Fetches headers only: Subject, From, Date
                                 #Fetch headers: FROM, SUBJECT, DATE
                                 status, data = mail.fetch(uid,'(BODY[HEADER.FIELDS (SUBJECT FROM DATE)])')
                                 if(status == "OK"):
@@ -59,16 +80,18 @@ def get_emails():
 
                                         for element in split_data:
                                                 if len(element.strip()) > 0:
-                                                        key, value = element.split(': ')
+                                                        key, value = element.split(': ',1)
                                                         result = {key.strip(): value.strip()}
                                                         for key,val in result.items():
                                                                 tmp_dict[key] = str(make_header(decode_header(val)))
 
                                 df = pd.concat([df,pd.DataFrame([tmp_dict])], ignore_index=True)
-
+                                print(f"Finished processing:{uid}")
                         print(df.head(5))
                         print("Saving as csv...")
                         df.to_csv(f'{bank}_bank_emails.csv',index=False)
+                        print(f"finished procesing:{bank} emails.")
+
 
         print("Logging out...")
         mail.close()

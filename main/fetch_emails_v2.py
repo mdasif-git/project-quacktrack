@@ -9,6 +9,7 @@ import pandas as pd
 import time
 from email.header import decode_header, make_header
 
+from bs4 import BeautifulSoup
 
 
 #Establish a connection to the Gmail IMAP server
@@ -18,7 +19,8 @@ def get_emails():
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
         user_email = "mdasif.uem@gmail.com"
 
-        bank_senders = ['alerts@hdfcbank.net']
+        # bank_senders = ['alerts@hdfcbank.net']
+        bank_senders = ['alerts@axis.bank.in']
         print(f"Logging in to Mailbox: {user_email}")
         mail.login(user='mdasif.uem@gmail.com', password=os.getenv("GMAIL_APP_PASSWORD"))
 
@@ -53,34 +55,53 @@ def get_emails():
                                                 content_disposition = str(part.get("Content-Disposition"))
                                                 if(content_type =="text/html"):
                                                         body = part.get_payload(decode=True) 
+                                                        print("payload:")
+                                                        print(str(body)[:10])
                                                         body = body.decode('utf-8',errors='ignore').strip()
-                                                        body_trimmed = re.sub(r'\s+',' ',body)
-                                                        print(body_trimmed)
+                                                        print("body decoded:")
+                                                        print(str(body)[:10])
+                                                        # body_trimmed = re.sub(r'\s+',' ',body)
+                                                        # print(body_trimmed)
+                                                        body_trimmed = body
                                                         tmp_dict['email_body'] = body_trimmed
-                                
-                                #Fetch headers: FROM, SUBJECT, DATE
-                        #         status, data = mail.fetch(uid,'(BODY[HEADER.FIELDS (SUBJECT FROM DATE)])')
-                        #         if(status == "OK"):
-                        #                 split_data = data[0][1].decode('utf-8').split('\r\n')
-                        #                 print(split_data)
-                        #                 for element in split_data:
-                        #                         if len(element.strip()) > 0 and (":" in element.strip()):
-                                                        
-                        #                                 key, value = element.split(':',1)
-                        #                                 result = {key.strip(): value.strip()}
-                        #                                 for key,val in result.items():
-                        #                                         # Conditional decoding for headers
-                        #                                         decoded_parts = decode_header(val)
-                        #                                         if any(enc for _, enc in decoded_parts if enc):
-                        #                                                 val = str(make_header(decode_header(val)))
-                        #                                         print("key:",key,"val:",val)
-                        #                                         tmp_dict[key] = val
+                                                        soup = BeautifulSoup(body_trimmed, 'html.parser')
+                                                        print(soup)
+                                                        body_text = soup.body.get_text()
+                                                        body_trimmed = re.sub(r'\s+',' ',body_text)
+                                                        print("body")
+                                                        print(body_trimmed)
 
-                        #         df = pd.concat([df,pd.DataFrame([tmp_dict])], ignore_index=True)
+                                                        # Extract the main text content (assuming it's in the specific <td> class)
+                                                        # main_text = ""
+                                                        # main_td = soup.find('span', class_='esd-text')
+                                                        # if main_td:
+                                                        #         main_text = main_td.get_text(separator=' ', strip=True)
+                                                        #         print(main_text)
+                                                        tmp_dict['email_body'] = body_trimmed
 
-                        # print(df.head(5))
-                        # print("Saving as csv...")
-                        # df.to_csv(f'{bank}_bank_emails.csv',index=False)
+                                                        # print(soup)
+                        #Fetch headers: FROM, SUBJECT, DATE
+                        status, data = mail.fetch(mail_ids[-1],'(BODY[HEADER.FIELDS (SUBJECT FROM DATE)])')
+                        if(status == "OK"):
+                                split_data = data[0][1].decode('utf-8').split('\r\n')
+                                print(split_data)
+                                for element in split_data:
+                                        if len(element.strip()) > 0 and (":" in element.strip()):
+                                                
+                                                key, value = element.split(':',1)
+                                                result = {key.strip(): value.strip()}
+                                                for key,val in result.items():
+                                                        # Conditional decoding for headers
+                                                        decoded_parts = decode_header(val)
+                                                        if any(enc for _, enc in decoded_parts if enc):
+                                                                val = str(make_header(decode_header(val)))
+                                                        print("key:",key,"val:",val)
+                                                        tmp_dict[key] = val
+
+                        df = pd.concat([df,pd.DataFrame([tmp_dict])], ignore_index=True)
+                        print(df.head(5))
+                        print("Saving as csv...")
+                        df.to_csv(f'{bank}_bank_emails.csv',index=False)
 
         print("Logging out...")
         mail.close()
