@@ -1,1 +1,106 @@
-[![](https://mermaid.ink/img/pako:eNp9Ue9v2jAQ_VdOljptErCwAPmhaRIQMm1i7Ta6L0umyiSGRHPs6OKsZcD_3ksILdqk3hf73rv3zr7bs0SngvlsI_V9knE0cBvECiiqer1FXmaweDACFZd3K11jIiA6A3ACfp3qm5hGHwueEyHwj8COECqN1T-eS52Q4bQsIWqv8HVnMq2AkAu7WdTBc60MaimfPJuYd9IbKXnB4S0s29N-oW3ADb9bGY18S_9oMngFU_rKzuRJdeEdRK-DOvkdzCDMpXhzwSyidG36iUbxYp8qW2uOKUQ_Pl2Iw2hlUPBC5ua55n-fq6v2pRDSUk7IFPr9D4dQmIT20Yy4OsDsRM3gfcPRUpAnBj6vbq4PMD9zDbXUPIXv_L41PUC330XLfaH1SxrCLXJVbTQWT3zQ8t9qgbtOGLIe22KeMt9gLXqsEEhPoZTtG0nMTCYKETOfrqnY8FqamMXqSLKSq59aF2cl6nqbMX_DZUVZXabciCDnNLznEpqHwLmulWH-O7u1YP6ePTDfHnqD0cQZ285wNBx7Dbkj1B54tjNyLNe2XMvxnGOP_W17WgPXGVsUrutOHG8y8Y6PM27pvg?type=png)](https://mermaid.live/edit#pako:eNp9Ue9v2jAQ_VdOljptErCwAPmhaRIQMm1i7Ta6L0umyiSGRHPs6OKsZcD_3ksILdqk3hf73rv3zr7bs0SngvlsI_V9knE0cBvECiiqer1FXmaweDACFZd3K11jIiA6A3ACfp3qm5hGHwueEyHwj8COECqN1T-eS52Q4bQsIWqv8HVnMq2AkAu7WdTBc60MaimfPJuYd9IbKXnB4S0s29N-oW3ADb9bGY18S_9oMngFU_rKzuRJdeEdRK-DOvkdzCDMpXhzwSyidG36iUbxYp8qW2uOKUQ_Pl2Iw2hlUPBC5ua55n-fq6v2pRDSUk7IFPr9D4dQmIT20Yy4OsDsRM3gfcPRUpAnBj6vbq4PMD9zDbXUPIXv_L41PUC330XLfaH1SxrCLXJVbTQWT3zQ8t9qgbtOGLIe22KeMt9gLXqsEEhPoZTtG0nMTCYKETOfrqnY8FqamMXqSLKSq59aF2cl6nqbMX_DZUVZXabciCDnNLznEpqHwLmulWH-O7u1YP6ePTDfHnqD0cQZ285wNBx7Dbkj1B54tjNyLNe2XMvxnGOP_W17WgPXGVsUrutOHG8y8Y6PM27pvg)
+# QuackTrack 🦆
+
+A Python script to parse bank statements from Gmail emails and store them in DuckDB for analysis.
+
+## Features
+
+- Connect to Gmail using app-specific password
+- Parse debit and credit emails from multiple banks
+- Store transactions in DuckDB database
+- Query and analyze transactions
+- Pre-commit hooks for code quality
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.10+
+- Gmail account with app-specific password enabled
+- Git
+
+### Installation
+
+```bash
+# Clone repository
+git clone https://github.com/mdasif-git/project-quacktrack.git
+cd project-quacktrack
+
+# Install dependencies
+make install-dev
+
+# Setup pre-commit hooks
+make pre-commit
+
+# Copy environment template
+cp .env.example .env
+# Edit .env with your credentials
+```
+
+### Usage
+
+```bash
+# Run the application
+make run
+
+# Run tests
+make test
+
+# Format code
+make format
+
+# Run linting checks
+make lint
+```
+
+## Project Structure
+
+```
+project-quacktrack/
+├── src/quacktrack/           # Source code
+│   ├── parsers/              # Email parsers for different banks
+│   ├── database/             # DuckDB connection & models
+│   ├── utils/                # Utility functions
+│   ├── config.py             # Configuration
+│   └── main.py               # Entry point
+├── tests/                    # Unit tests
+├── data/                     # Local data storage
+├── docs/                     # Documentation
+└── README.md
+```
+
+## Configuration
+
+Create a `.env` file based on `.env.example`:
+
+```bash
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your-app-password-here
+DUCKDB_PATH=./data/bank_statements.duckdb
+LOG_LEVEL=INFO
+```
+
+## Development
+
+### Code Quality
+
+This project uses:
+- **Black** - Code formatting
+- **Flake8** - Linting
+- **isort** - Import sorting
+- **Pre-commit** - Git hooks for automatic checks
+
+### Running Tests
+
+```bash
+make test              # Run all tests
+make lint              # Check code quality
+make format            # Auto-format code
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.

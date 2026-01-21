@@ -19,8 +19,8 @@ def get_emails():
         mail = imaplib.IMAP4_SSL("imap.gmail.com")
         user_email = "mdasif.uem@gmail.com"
 
-        # bank_senders = ['alerts@hdfcbank.net']
-        bank_senders = ['alerts@axis.bank.in']
+        bank_senders = ['alerts@hdfcbank.net']
+        # bank_senders = ['alerts@axis.bank.in']
         print(f"Logging in to Mailbox: {user_email}")
         mail.login(user='mdasif.uem@gmail.com', password=os.getenv("GMAIL_APP_PASSWORD"))
 
@@ -41,7 +41,7 @@ def get_emails():
                         #Iterate through all the emails from the sender
                         # for uid in mail_ids:
                         tmp_dict = {}
-                        status, data = mail.fetch(mail_ids[-1],'(RFC822)')
+                        status, data = mail.fetch(b'64523','(RFC822)')
                         print("Fetch status:",status)
                         if(status == "OK"):
                                 msg = email.message_from_bytes(data[0][1])
@@ -81,7 +81,7 @@ def get_emails():
 
                                                         # print(soup)
                         #Fetch headers: FROM, SUBJECT, DATE
-                        status, data = mail.fetch(mail_ids[-1],'(BODY[HEADER.FIELDS (SUBJECT FROM DATE)])')
+                        status, data = mail.fetch(b'64523','(BODY[HEADER.FIELDS (SUBJECT FROM DATE)])')
                         if(status == "OK"):
                                 split_data = data[0][1].decode('utf-8').split('\r\n')
                                 print(split_data)
