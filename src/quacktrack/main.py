@@ -1,16 +1,17 @@
 """Main entry point for QuackTrack."""
 
-import logging
-import imaplib
-import os
-import logging
 import email
-import quopri 
+import imaplib
+import logging
+import os
+import quopri
 import re
-import pandas as pd
 import time
 from email.header import decode_header, make_header
+
+import pandas as pd
 from bs4 import BeautifulSoup
+
 from quacktrack.config import config
 
 # Configure logging
