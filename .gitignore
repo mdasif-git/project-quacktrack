@@ -59,7 +59,10 @@ htmlcov/
 # DuckDB
 *.duckdb
 *.duckdb.wal
-
+*.lock
 # Logs
 *.log
 logs/
+
+#data folder
+data/
