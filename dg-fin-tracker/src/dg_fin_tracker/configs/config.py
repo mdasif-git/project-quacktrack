@@ -16,7 +16,7 @@ DUCKDB_PATH = os.getenv("DUCKDB_PATH")
 EXTERNAL_SCHEMA = os.getenv("EXTERNAL_SCHEMA")
 
 
-# Define your templates
+# Define templates
 BANK_CONFIGS = {
     "AXIS": [
         {
