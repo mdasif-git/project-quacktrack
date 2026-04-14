@@ -66,3 +66,6 @@ logs/
 
 #data folder
 data/
+dg-fin-tracker/.dg
+dg-fin-tracker/dagster_storage/*
+dg-fin-tracker/.tmp*
