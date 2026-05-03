@@ -125,7 +125,7 @@ def read_from_bank(bank, sender_id, file_path, mail, context, last_processed=Non
             return full_file_path
 
 
-def get_emails(context,data_landing_path, last_fetched_date,sender_config):
+def get_emails(context,data_landing_path, last_fetched_date,sender_config, target_date):
     """Fetch emails from Gmail for a specific bank."""
     load_dotenv()
     mail = imaplib.IMAP4_SSL("imap.gmail.com")
@@ -158,8 +158,7 @@ def get_emails(context,data_landing_path, last_fetched_date,sender_config):
         context.log.warning("No valid sender found in config")
         return "No valid sender found in config"
     else:
-        today_date = datetime.now().strftime("%Y-%m-%d")
-        file_path = f"{data_landing_path}/{today_date}"
+        file_path = f"{data_landing_path}/{target_date}"
         os.makedirs(file_path, exist_ok=True)
         full_path = read_from_bank(key, bank_senders, file_path, mail, context, last_fetched_date)
 
@@ -169,18 +168,3 @@ def get_emails(context,data_landing_path, last_fetched_date,sender_config):
         context.log.info("Logged out successfully.")
         context.log.info(f"Successfully processed {bank_senders} emails")
         return full_path
-        
-
-# def parallelize():
-#     """Execute email fetching in parallel for multiple banks."""
-#     # Targets
-#     senders = [
-#         {"id": "alerts@axisbank.com", "bank": "AXIS"},
-#         {"id": "alerts@axis.bank.in", "bank": "AXIS"},
-#         {"id": "alerts@hdfcbank.net", "bank": "HDFC"},
-#         {'id': "alerts@hdfcbank.bank.in", "bank": "HDFC"},
-#         {"id": "credit_cards@icicibank.com", "bank": "ICICI"},
-#     ]
-#     # Execute in Parallel
-#     with ThreadPoolExecutor(max_workers=3) as executor:
-#         results = list(executor.map(get_emails, senders))

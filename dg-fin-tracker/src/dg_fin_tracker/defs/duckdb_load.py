@@ -5,6 +5,7 @@ import numpy as np
 import re
 from datetime import datetime
 import requests
+from dagster import Failure
 # from config import (
 #     DATA_LANDING_PATH,
 #     DATA_INGESTION_PATH,
@@ -31,7 +32,7 @@ import requests
 #         print(f"Moved: {item.name}")   
 
 
-def load_into_external(context,file_path,duckdb, EXTERNAL_SCHEMA):
+def load_into_external(context,file_path,duckdb, EXTERNAL_SCHEMA, target_date):
     with duckdb.get_connection() as conn:
         with open(f"{EXTERNAL_SCHEMA}/ingestion_external.txt") as f:
             schema = f.read()
@@ -61,10 +62,10 @@ def load_into_external(context,file_path,duckdb, EXTERNAL_SCHEMA):
             conn.execute(
                 """
                 INSERT INTO transactions_external (email_message_id, email_From, Subject, email_Date, email_body_from_html, email_body_from_plain, bank, transaction_details_from_html, transaction_details_from_plain, transaction_type, transaction_detail_extracted_regex, filename, ingestion_date, llm_status)
-                (SELECT email_message_id, email_From, Subject, email_Date, email_body_from_html, email_body_from_plain, bank, transaction_details_from_html, transaction_details_from_plain, transaction_type, transaction_detail_regex_extracted, ? AS filename, CURRENT_DATE() as ingestion_date, CAST(NULL AS STRING) as llm_status
+                (SELECT email_message_id, email_From, Subject, email_Date, email_body_from_html, email_body_from_plain, bank, transaction_details_from_html, transaction_details_from_plain, transaction_type, transaction_detail_regex_extracted, ? AS filename,? as ingestion_date, CAST(NULL AS STRING) as llm_status
                 FROM read_csv(?, header=True) where email_message_id NOT IN (SELECT distinct email_message_id FROM transactions_external))
                 """,
-                [file_path.name, file_path.as_posix()]
+                [file_path.name, target_date, file_path.as_posix()]
             )
             context.log.info(conn.fetchall())
             context.log.info(f"Successfully ingested: {file_path}")
@@ -113,7 +114,7 @@ def load_refined_from_regex(context,duckdb, external_table_name, refined_table_n
                 transaction_detail_extracted_regex
                 from {external_table_name}
                 where bank='{bank_name}' AND ingestion_date = '{target_date}' AND transaction_detail_extracted_regex is not null
-                and transaction_detail_extracted_regex != 'pattern mismatch';"""
+                and transaction_detail_extracted_regex != 'pattern mismatch' AND email_message_id NOT IN (SELECT DISTINCT email_message_id FROM transactions_refined WHERE bank = '{bank_name}');"""
         sql_full_load = f"""select
                 distinct 
                 email_message_id,
@@ -373,6 +374,37 @@ def get_raw_records(context, duckdb, external_table_name, bank_name, target_date
 
 
 def process_records_with_llm(context, df_raw, prompt):
+    """
+    Checks if the LM Studio server is up AND the specific model is loaded.
+    """
+    url = "http://localhost:1234/api/v1/models"
+    target_model_key="gemma-4-e4b-it"
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        
+        data = response.json()
+        # Extract all loaded model keys
+        loaded_models = [m.get('key') for m in data.get('data', [])] # Note: LM Studio usually wraps in 'data' or 'models'
+        
+        # In your output, the list was under "models", let's be safe:
+        if not loaded_models:
+            loaded_models = [m.get('key') for m in data.get('models', [])]
+
+        if target_model_key not in loaded_models:
+            raise Failure(
+                description=f"Model '{target_model_key}' is not loaded in LM Studio.",
+                metadata={"loaded_models": str(loaded_models), "target": target_model_key}
+            )
+            
+        context.log.info(f"Health Check Passed: {target_model_key} is active.")
+        
+    except requests.exceptions.ConnectionError:
+        raise Failure("LM Studio server is not running. Please start the local server on port 1234.")
+    except Exception as e:
+        raise Failure(f"Unexpected error during LLM health check: {str(e)}")
+
+
     def proces_trn_dtl(input_text, prompt): 
         payload = {
             "model": "gemma-4-e4b-it",

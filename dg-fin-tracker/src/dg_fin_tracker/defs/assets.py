@@ -1,4 +1,5 @@
 import dagster as dg
+from dagster import Failure
 from dagster_duckdb import DuckDBResource
 import os
 from pathlib import Path
@@ -108,7 +109,7 @@ def fetch_emails(context: dg.AssetExecutionContext,get_last_processed):
         context.log.info(f"Last fetched date for {bank_name} is {last_date}")
         if(last_date is not None):
             context.log.info(f"Fetching emails for {bank_name} since {last_date}")
-            files_path = get_emails(context,DATA_LANDING_PATH,last_date,{"id": sender, "bank": bank_name})
+            files_path = get_emails(context,DATA_LANDING_PATH,last_date,{"id": sender, "bank": bank_name}, target_date)
 
             if files_path and isinstance(files_path,str):
                 emails.append(files_path)
@@ -141,7 +142,7 @@ def process_email(context: dg.AssetExecutionContext, fetch_emails: list):
     
     for email_file in fetch_emails:
         context.log.info(f"Processing email file: {email_file}")
-        processed_files = process_email_from_file(context, email_file, DATA_INGESTION_PATH, DATA_ARCHIVE_PATH, BANK_CONFIGS, nlp)
+        processed_files = process_email_from_file(context, email_file, DATA_INGESTION_PATH, DATA_ARCHIVE_PATH, BANK_CONFIGS, nlp, target_date)
         
         # Handle both list and single file returns
         if isinstance(processed_files, list):
@@ -173,7 +174,7 @@ def load_into_duckdb(context: dg.AssetExecutionContext, process_email: list, duc
     for file in process_email:
         if file:
             context.log.info(f"Loading into DuckDB: {file}")
-            load_into_external(context, file, duckdb, EXTERNAL_SCHEMA)
+            load_into_external(context, file, duckdb, EXTERNAL_SCHEMA, target_date)
     
     return dg.Output(
         value=True,
