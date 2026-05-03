@@ -115,13 +115,13 @@ def first_parse_transaction_email_u_regex(bank_name, text, bank_configs):
     return None # Return None if no rules match
 
 
-def process_email_from_file(context, src_file_path, data_ingestion_path, data_archive_path, bank_configs, nlp_model):
+def process_email_from_file(context, src_file_path, data_ingestion_path, data_archive_path, bank_configs, nlp_model, target_date):
     """Process emails from landing directory to ingestion directory."""
     today_date = datetime.now().strftime("%Y-%m-%d")
 
     # src_path = DATA_LANDING_PATH / today_date
-    dest_path = data_ingestion_path / today_date
-    archive_path = data_archive_path / today_date
+    dest_path = data_ingestion_path / target_date
+    archive_path = data_archive_path / target_date
 
     dest_path.mkdir(parents=True, exist_ok=True)
     archive_path.mkdir(parents=True, exist_ok=True)
